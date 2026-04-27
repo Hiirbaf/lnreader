@@ -127,9 +127,34 @@ android {
     kotlinOptions {
         jvmTarget = '17'
     }
+    splits {
+        abi {
+            enable true
+            reset()
+            include "arm64-v8a", "armeabi-v7a", "x86_64"
+            universalApk false
+        }
+    }
     externalNativeBuild {
         cmake {
             path "src/main/jni/CMakeLists.txt"
+        }
+    }
+}
+
+ext.abiVersionCodes = [
+    "armeabi-v7a": 1,
+    "arm64-v8a"  : 2,
+    "x86_64"     : 3,
+]
+
+android.applicationVariants.all { variant ->
+    variant.outputs.each { output ->
+        def abi = output.getFilter(com.android.build.OutputFile.ABI)
+        if (abi != null) {
+            // Preserva tu versionCode con bit-shifting y añade prefijo por ABI
+            output.versionCodeOverride =
+                ext.abiVersionCodes.get(abi) * 10000000 + variant.mergedFlavor.versionCode
         }
     }
 }
